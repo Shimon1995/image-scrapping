@@ -7,6 +7,11 @@ import { Album } from './interfaces';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get()
+  getPage(): string {
+    return 'Vue.js page';
+  }
+
   @Get(':album_name')
   getAlbum(@Param('album_name') id: string): Promise<string[]> {
     return this.appService.getImages(id);

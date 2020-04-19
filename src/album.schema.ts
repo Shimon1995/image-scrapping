@@ -1,6 +1,6 @@
 import { Schema } from 'mongoose';
 
-export const AlbumSchemam = new Schema({
-    name: String,
-    images: [String],
+export const AlbumSchema = new Schema({
+    name: { type: String, required: true, unique: true },
+    images: { type: [String], required: true },
 });

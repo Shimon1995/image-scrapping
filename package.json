@@ -30,6 +30,8 @@
     "@types/mongoose": "^5.7.11",
     "@types/puppeteer": "^2.0.1",
     "axios": "^0.19.2",
+    "class-transformer": "^0.2.3",
+    "class-validator": "^0.12.1",
     "get-urls": "^9.2.0",
     "helmet": "^3.22.0",
     "lodash": "^4.17.15",
