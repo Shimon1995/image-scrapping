@@ -39,8 +39,8 @@ export class AppService {
         visible: true,
     });
 
-    await page.type('[name=username]', 'arsus95');
-    await page.type('[name=password]', 'Ijf9QaCn03J+6KxiTz+aGqJDl6Yj8ZE6MQvauhA+UxI=');
+    await page.type('[name=username]', 'username');
+    await page.type('[name=password]', 'password');
 
     await page.click('[type=submit]');
 
