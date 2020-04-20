@@ -12,6 +12,11 @@ export class AppController {
     return 'Vue.js page';
   }
 
+  @Get('album_list')
+  getAlbumList(): string[] {
+    return this.appService.getAlbumList();
+  }
+
   @Get(':album_name')
   getAlbum(@Param('album_name') id: string): Promise<string[]> {
     return this.appService.getImages(id);
@@ -23,7 +28,10 @@ export class AppController {
   }
 
   @Delete(':album_name')
-  removeItem(@Param('album_name') id: string, @Body() body: DeleteImageDTO): Promise<string[]> {
+  removeItem(
+    @Param('album_name') id: string,
+    @Body() body: DeleteImageDTO,
+  ): Promise<string[]> {
     return this.appService.removeImageFromAlbum(body.imagenumber, id);
   }
 }

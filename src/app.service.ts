@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { launch } from 'puppeteer';
 import { resolve } from 'path';
 import axios from 'axios';
-import { createWriteStream, unlinkSync, mkdirSync, existsSync } from 'fs';
+import { createWriteStream, unlinkSync, mkdirSync, existsSync, readdirSync } from 'fs';
 import { CreateAlbumDTO } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -13,6 +13,16 @@ import * as getUrls from 'get-urls';
 @Injectable()
 export class AppService {
   constructor(@InjectModel('Album') private albumModel: Model<Album>) {}
+
+  getAlbumList(): string[] {
+    
+    const dirs = readdirSync(resolve(__dirname, '../images'), { withFileTypes: true });
+    const result = dirs
+      .filter(res => res.isDirectory())
+      .map(res => res.name);
+    
+      return result;
+  }
 
   parserURL(url: string): Link[] {
 
