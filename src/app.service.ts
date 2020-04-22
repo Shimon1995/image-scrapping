@@ -16,30 +16,28 @@ export class AppService {
   constructor(@InjectModel('Album') private albumModel: Model<Album>) {}
 
   async getAlbumList(): Promise<string[]> {
-    
     const result: string[] = [];
 
-      const albums = await this.albumModel.find().exec();
-      for (const { name } of albums) {
-        result.push(name);
-      }
+    const albums = await this.albumModel.find().exec();
+    for (const { name } of albums) {
+      result.push(name);
+    }
 
-      return result;
+    return result;
   }
 
   parserURL(url: string): Link[] {
-
-    const links = Array.from( getUrls(url) );
+    const links = Array.from(getUrls(url));
     const instagramArray: Link[] = [];
 
     for (const link of links) {
-      if ( includes(link, 'instagram') ) {
+      if (includes(link, 'instagram')) {
         instagramArray.push({ link, instagram: true });
       } else {
         instagramArray.push({ link, instagram: false });
       }
     }
-    
+
     return instagramArray;
   }
 
@@ -49,7 +47,7 @@ export class AppService {
 
     await page.goto('https://instagram.com/accounts/login/');
     await page.waitForSelector('[name=username]', {
-        visible: true,
+      visible: true,
     });
 
     await page.type('[name=username]', 'username');
@@ -59,15 +57,15 @@ export class AppService {
 
     await page.goto(url);
     await page.waitForSelector('img', {
-        visible: true,
+      visible: true,
     });
 
-    const data = await page.evaluate( () => {
-        const images = document.querySelectorAll('img');
+    const data = await page.evaluate(() => {
+      const images = document.querySelectorAll('img');
 
-        const urls = Array.from(images).map(v => v.src);
+      const urls = Array.from(images).map(v => v.src);
 
-        return urls;
+      return urls;
     });
 
     await browser.close();
@@ -81,10 +79,10 @@ export class AppService {
 
     await page.goto(url);
     await page.waitForSelector('img', {
-        visible: true,
+      visible: true,
     });
 
-    const data = await page.evaluate( () => {
+    const data = await page.evaluate(() => {
       const images = document.querySelectorAll('img');
 
       const urls = Array.from(images).map(v => v.src);
@@ -110,31 +108,41 @@ export class AppService {
     const dir = resolve(__dirname, '../', `../client/images/${name}`);
     if (!existsSync(dir)) mkdirSync(dir);
 
-      for (const url of images) {
-        
-        const response = await axios({
-          method: 'GET',
-          url,
-          responseType: 'stream',
-        });
-        
-        if ( response.headers['content-length'] >= 250 * 250 &&
-            (response.headers['content-type'] === 'image/jpeg' ||
-             response.headers['content-type'] === 'image/png') ) {
+    for (const url of images) {
+      const response = await axios({
+        method: 'GET',
+        url,
+        responseType: 'stream',
+      });
 
-          if (response.headers['content-type'] === 'image/jpeg') {
-            directory = resolve(__dirname, '../', `../client/images/${name}`, `image${number}.jpg`);
-            files.push(`${name}/image${number}.jpg`);
-          } else {
-            directory = resolve(__dirname, '../', `../client/images/${name}`, `image${number}.png`);
-            files.push(`${name}/image${number}.png`);
-          }
-          
-          number += 1;
-
-          await response.data.pipe(createWriteStream(directory));
+      if (
+        response.headers['content-length'] >= 250 * 250 &&
+        (response.headers['content-type'] === 'image/jpeg' ||
+          response.headers['content-type'] === 'image/png')
+      ) {
+        if (response.headers['content-type'] === 'image/jpeg') {
+          directory = resolve(
+            __dirname,
+            '../',
+            `../client/images/${name}`,
+            `image${number}.jpg`,
+          );
+          files.push(`${name}/image${number}.jpg`);
+        } else {
+          directory = resolve(
+            __dirname,
+            '../',
+            `../client/images/${name}`,
+            `image${number}.png`,
+          );
+          files.push(`${name}/image${number}.png`);
         }
+
+        number += 1;
+
+        await response.data.pipe(createWriteStream(directory));
       }
+    }
 
     return files;
   }
@@ -144,7 +152,7 @@ export class AppService {
     const links = this.parserURL(body.url);
 
     for (const [key, { link, instagram }] of links.entries()) {
-      let data: string[]
+      let data: string[];
       const name = body.names[key];
 
       if (instagram) {
@@ -162,19 +170,32 @@ export class AppService {
     return albums;
   }
 
-  async removeImageFromAlbum(imageID: number, albumName: string): Promise<string[]> {
-    const { images } = await this.albumModel.findOne({ name: albumName }).exec();
+  async removeImageFromAlbum(
+    imageID: number,
+    albumName: string,
+  ): Promise<string[]> {
+    const { images } = await this.albumModel
+      .findOne({ name: albumName })
+      .exec();
 
-    unlinkSync(resolve(__dirname, '../', '../client/images', albumName, `image${imageID}.jpg`));
+    unlinkSync(
+      resolve(
+        __dirname,
+        '../',
+        '../client/images',
+        albumName,
+        `image${imageID}.jpg`,
+      ),
+    );
     remove(images, image => includes(image, 'image' + imageID));
 
     this.albumModel.updateOne({ name: albumName }, { $set: { images } }).exec();
     return images;
   }
 
-  async removeAlbum(albumName: string) {
+  async removeAlbum(albumName: string): Promise<void> {
     const dir = resolve(__dirname, '../', '../client/images', albumName);
     rimraf(dir, () => console.log());
-    return this.albumModel.deleteOne({ name: albumName }).exec();
+    this.albumModel.deleteOne({ name: albumName }).exec();
   }
 }

@@ -31,7 +31,7 @@ export class AppController {
   }
 
   @Delete('delete_album/:album_name')
-  removeAlbum(@Param('album_name') id: string) {
+  removeAlbum(@Param('album_name') id: string): Promise<void> {
     return this.appService.removeAlbum(id);
   }
 }
