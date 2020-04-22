@@ -2,25 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { launch } from 'puppeteer';
 import { resolve } from 'path';
 import axios from 'axios';
-import { createWriteStream, unlinkSync, mkdirSync, existsSync, readdirSync } from 'fs';
+import { createWriteStream, unlinkSync, mkdirSync, existsSync } from 'fs';
 import { CreateAlbumDTO } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Album, Link } from './interfaces';
 import { remove, includes } from 'lodash';
 import * as getUrls from 'get-urls';
+import * as rimraf from 'rimraf';
 
 @Injectable()
 export class AppService {
   constructor(@InjectModel('Album') private albumModel: Model<Album>) {}
 
-  getAlbumList(): string[] {
+  async getAlbumList(): Promise<string[]> {
     
-    const dirs = readdirSync(resolve(__dirname, '../images'), { withFileTypes: true });
-    const result = dirs
-      .filter(res => res.isDirectory())
-      .map(res => res.name);
-    
+    const result: string[] = [];
+
+      const albums = await this.albumModel.find().exec();
+      for (const { name } of albums) {
+        result.push(name);
+      }
+
       return result;
   }
 
@@ -96,7 +99,7 @@ export class AppService {
 
   async getImages(name: string): Promise<string[]> {
     const { images } = await this.albumModel.findOne({ name }).exec();
-    return images.map(image => `http://localhost:3000/${image}`);
+    return images.map(image => `http://localhost:3000/api/images/${image}`);
   }
 
   async downloadImages(name: string, images: string[]): Promise<string[]> {
@@ -104,7 +107,7 @@ export class AppService {
     let directory: string;
     let number = 1;
 
-    const dir = resolve(__dirname, `../images/${name}`);
+    const dir = resolve(__dirname, '../', `../client/images/${name}`);
     if (!existsSync(dir)) mkdirSync(dir);
 
       for (const url of images) {
@@ -120,10 +123,10 @@ export class AppService {
              response.headers['content-type'] === 'image/png') ) {
 
           if (response.headers['content-type'] === 'image/jpeg') {
-            directory = resolve(__dirname, `../images/${name}`, `image${number}.jpg`);
+            directory = resolve(__dirname, '../', `../client/images/${name}`, `image${number}.jpg`);
             files.push(`${name}/image${number}.jpg`);
           } else {
-            directory = resolve(__dirname, `../images/${name}`, `image${number}.png`);
+            directory = resolve(__dirname, '../', `../client/images/${name}`, `image${number}.png`);
             files.push(`${name}/image${number}.png`);
           }
           
@@ -162,10 +165,16 @@ export class AppService {
   async removeImageFromAlbum(imageID: number, albumName: string): Promise<string[]> {
     const { images } = await this.albumModel.findOne({ name: albumName }).exec();
 
-    unlinkSync(resolve(__dirname, '../images', albumName, `image${imageID}.jpg`));
+    unlinkSync(resolve(__dirname, '../', '../client/images', albumName, `image${imageID}.jpg`));
     remove(images, image => includes(image, 'image' + imageID));
 
     this.albumModel.updateOne({ name: albumName }, { $set: { images } }).exec();
     return images;
+  }
+
+  async removeAlbum(albumName: string) {
+    const dir = resolve(__dirname, '../', '../client/images', albumName);
+    rimraf(dir, () => console.log());
+    return this.albumModel.deleteOne({ name: albumName }).exec();
   }
 }

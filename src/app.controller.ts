@@ -7,13 +7,8 @@ import { Album } from './interfaces';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getPage(): string {
-    return 'Vue.js page';
-  }
-
   @Get('album_list')
-  getAlbumList(): string[] {
+  getAlbumList(): Promise<string[]> {
     return this.appService.getAlbumList();
   }
 
@@ -33,5 +28,10 @@ export class AppController {
     @Body() body: DeleteImageDTO,
   ): Promise<string[]> {
     return this.appService.removeImageFromAlbum(body.imagenumber, id);
+  }
+
+  @Delete('delete_album/:album_name')
+  removeAlbum(@Param('album_name') id: string) {
+    return this.appService.removeAlbum(id);
   }
 }

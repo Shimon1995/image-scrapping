@@ -12,7 +12,11 @@ import { join } from 'path';
     { useNewUrlParser: true, useUnifiedTopology: true }),
     MongooseModule.forFeature([{ name: 'Album', schema: AlbumSchema}]),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'images'),
+      rootPath: join(__dirname, '../', '../client/dist'),
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../', '../client/images'),
+      serveRoot: '/api/images',
     }),
   ],
   controllers: [AppController],
