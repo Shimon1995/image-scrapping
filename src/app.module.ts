@@ -8,7 +8,7 @@ import { join } from 'path';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/albums', 
+    MongooseModule.forRoot(process.env.MONGODB_URI, 
     { useNewUrlParser: true, useUnifiedTopology: true }),
     MongooseModule.forFeature([{ name: 'Album', schema: AlbumSchema}]),
     ServeStaticModule.forRoot({

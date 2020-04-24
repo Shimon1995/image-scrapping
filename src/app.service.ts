@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { launch } from 'puppeteer';
 import { resolve } from 'path';
 import axios from 'axios';
 import { createWriteStream, unlinkSync, mkdirSync, existsSync } from 'fs';
@@ -10,6 +9,8 @@ import { Album, Link } from './interfaces';
 import { remove, includes } from 'lodash';
 import * as getUrls from 'get-urls';
 import * as rimraf from 'rimraf';
+import { launch } from 'puppeteer-core';
+import * as chrome from 'chrome-aws-lambda';
 
 @Injectable()
 export class AppService {
@@ -42,7 +43,11 @@ export class AppService {
   }
 
   async getImagesInstagram(url: string): Promise<string[]> {
-    const browser = await launch({ headless: true });
+    const browser = await launch({
+      args: chrome.args,
+      executablePath: await chrome.executablePath,
+      headless: chrome.headless,
+    });
     const page = await browser.newPage();
 
     await page.goto('https://instagram.com/accounts/login/');
@@ -50,8 +55,11 @@ export class AppService {
       visible: true,
     });
 
-    await page.type('[name=username]', 'username');
-    await page.type('[name=password]', 'password');
+    await page.type('[name=username]', process.env.INSTA_USERNAME);
+    await page.type(
+      '[name=password]',
+      process.env.INSTA_PASSWORD,
+    );
 
     await page.click('[type=submit]');
 
@@ -74,7 +82,11 @@ export class AppService {
   }
 
   async getImagesNotInstagram(url: string): Promise<string[]> {
-    const browser = await launch({ headless: true });
+    const browser = await launch({ 
+      args: chrome.args,
+      executablePath: await chrome.executablePath,
+      headless: chrome.headless,
+     });
     const page = await browser.newPage();
 
     await page.goto(url);
@@ -97,7 +109,7 @@ export class AppService {
 
   async getImages(name: string): Promise<string[]> {
     const { images } = await this.albumModel.findOne({ name }).exec();
-    return images.map(image => `http://localhost:3000/api/images/${image}`);
+    return images.map(image => `/api/images/${image}`);
   }
 
   async downloadImages(name: string, images: string[]): Promise<string[]> {
