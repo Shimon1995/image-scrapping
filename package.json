@@ -35,7 +35,7 @@
     "class-validator": "^0.12.1",
     "get-urls": "^9.2.0",
     "helmet": "^3.22.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "mongoose": "^5.9.9",
     "puppeteer-core": "^3.0.1",
     "reflect-metadata": "^0.1.13",
